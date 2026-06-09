@@ -1,0 +1,98 @@
+# HM3D-Reloc.yaml -- G2G config
+# Task: Cross-sequence localization (Task 1)
+# Dataset: HM3D
+# Replace all /path/to/... with your real paths (backbone and data) before use.
+# Train: torchrun --nproc_per_node=4 scripts/train_reloc.py --config configs/reloc/hm3d.yaml --curriculum
+# Eval:  python scripts/eval_reloc.py --config configs/reloc/hm3d.yaml --checkpoint /path/to/HM3D-Reloc.pth --output-dir outputs/eval_HM3D-Reloc
+
+# ===== Backbone =====
+backbone:
+  model_path: "/path/to/map-anything-model/"
+  freeze: true
+
+# ===== G2G model =====
+model:
+  embed_dim: 768
+  num_latents: 64
+  num_frames_per_group: 5
+  resampler_layers: 2
+  # G2GBridgeMultiFrame parameters
+  bridge_alternating_pairs: 0   # skip Phase 1, pure Phase 2 merge
+  bridge_merged_layers: 2
+  reinject_anchor_after_merge: true
+  # MultiFramePoseHead parameters
+  pose_head_hidden_dim: 512
+  pose_head_layers: 3
+  num_heads: 8
+  rotation_repr: "6d"
+
+# ===== Data =====
+data:
+  train:
+    step1_root: "/path/to/data/HM3D/DATA_GEN/step1_generate_trajectories_train"
+    step2_root: "/path/to/data/HM3D/DATA_GEN/step2_5_rig_configs_train"
+    step3_root: "/path/to/data/HM3D/DATA_GEN/step3_render_224_224_uint16_train_2_5ins"
+    stage2_index_root: "/path/to/data/HM3D/DATA_GEN/step5_stage2_index_train_gt_2_5ins"
+    step6_root: "/path/to/data/HM3D/DATA_GEN/step6_dinov2_features_224_train_2_5ins"
+  val:
+    step1_root: "/path/to/data/HM3D/DATA_GEN/step1_generate_trajectories_val"
+    step2_root: "/path/to/data/HM3D/DATA_GEN/step2_5_rig_configs_val"
+    step3_root: "/path/to/data/HM3D/DATA_GEN/step3_render_224_224_uint16_val_2_5ins"
+    stage2_index_root: "/path/to/data/HM3D/DATA_GEN/step5_stage2_index_val_gt_2_5ins"
+    step6_root: "/path/to/data/HM3D/DATA_GEN/step6_dinov2_features_224_val_2_5ins"
+  img_size: [224, 224]
+  window_size: 5
+  top_k: 10
+  min_overlap_score: 0.1
+  num_workers: 2
+  anchor_frame_idx: 0
+  shuffle_within_group: false
+  extrinsics_noise:
+    enabled: true
+    noise_group_a: true
+    noise_group_b: true
+    rotation_noise_std_deg: 1.5
+    translation_noise_std_m: 0.1
+
+# ===== Training =====
+training:
+  batch_size: 32
+  gradient_accumulation: 1
+  lr: 1.0e-4
+  weight_decay: 0.01
+  epochs: 3
+  warmup_steps: 1000
+  lr_step_interval: 10
+  grad_clip: 5.0
+  seed: 42
+
+  # Loss
+  loss_type: "chordal"
+  rotation_weight: 5.0
+  translation_weight: 1.0
+  intra_pose_weight: 0.5
+  inter_pose_weight: 1.0
+
+  # Adaptive curriculum learning
+  curriculum:
+    thresholds: [0.5, 0.45, 0.40, 0.35, 0.30, 0.25, 0.20, 0.15, 0.1]
+    phase2_end: 0.15
+    convergence:
+      window_size: 200
+      rot_thresh: 0.1
+      trans_thresh: 0.5
+
+  # Logging and checkpointing
+  log_every: 10
+  val_every: 1
+  save_every: 1
+  output_dir: "./outputs/HM3D-Reloc"
+
+# ===== Overfit mode (--overfit) =====
+overfit:
+  max_scenes: 10
+  batch_size: 32
+  epochs: 20
+  lr: 1.0e-4
+  log_every: 5
+  val_every: 1

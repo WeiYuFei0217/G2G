@@ -1,0 +1,35 @@
+NOTICE — Vendored MapAnything
+==============================
+
+This directory (`third_party/mapanything/`) contains a vendored copy of
+MapAnything, redistributed under the Apache License 2.0 (see the LICENSE file
+in this directory).
+
+Upstream:   https://github.com/facebookresearch/map-anything
+Version:    v1.0.1 (commit fde8425513178bb4f89fba9828193e6be3ece248)
+Copyright:  (c) Meta Platforms, Inc. and affiliates.
+
+Why vendored
+------------
+The frozen-backbone G2G pose-estimation module needs the multi-view
+information-sharing features that MapAnything computes *before* its DPT
+prediction head. Upstream v1.0.1 does not expose these features, so a single
+small modification is applied (below). The package is vendored here so the
+release is self-contained and reproduces the exact backbone used for training
+and evaluation.
+
+Modifications relative to upstream v1.0.1
+-----------------------------------------
+Exactly ONE source file differs from upstream v1.0.1; every other file is
+byte-for-byte identical:
+
+  mapanything/models/mapanything/model.py
+    `MapAnything.forward()` gains an optional argument
+    `return_info_sharing_features` (default False). When True, forward()
+    early-returns the multi-view information-sharing features (before the DPT
+    prediction head) as a list of [B, C, H_patch, W_patch] tensors. This is
+    the feature interface consumed by
+    `g2g/models/stage2_model_multiframe.py`.
+
+When `return_info_sharing_features` is False (the default), behavior is
+identical to upstream v1.0.1.

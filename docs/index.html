@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>G2G: Exploiting Intra-Group Geometry for Inter-Group Pose Estimation</title>
+<meta name="description" content="G2G estimates the relative 6-DoF pose between two image groups for cross-sequence relocalization and multi-camera rig odometry, keeping a multi-view foundation model frozen and adding ~32M trainable parameters.">
+<!-- Open Graph / Twitter(社交分享卡片需绝对 URL,相对路径在爬虫端无法解析)-->
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://weiyufei0217.github.io/G2G/">
+<meta property="og:title" content="G2G: Exploiting Intra-Group Geometry for Inter-Group Pose Estimation">
+<meta property="og:description" content="A frozen multi-view foundation model + ~32M trainable parameters for group-to-group 6-DoF pose estimation. State-of-the-art on relocalization and rig odometry across four datasets.">
+<meta property="og:image" content="https://weiyufei0217.github.io/G2G/assets/teaser/method.png">
+<meta property="og:image:width" content="3414">
+<meta property="og:image:height" content="1010">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="G2G: Exploiting Intra-Group Geometry for Inter-Group Pose Estimation">
+<meta name="twitter:description" content="A frozen multi-view foundation model + ~32M trainable parameters for group-to-group 6-DoF pose estimation. State-of-the-art on relocalization and rig odometry across four datasets.">
+<meta name="twitter:image" content="https://weiyufei0217.github.io/G2G/assets/teaser/method.png">
+<!-- Google Scholar (Highwire) 引用元数据:帮助论文 PDF 被 Scholar 收录 -->
+<meta name="citation_title" content="G2G: Exploiting Intra-Group Geometry for Inter-Group Pose Estimation">
+<meta name="citation_arxiv_id" content="2606.08284">
+<meta name="citation_author" content="Wei, Yufei">
+<meta name="citation_author" content="Ye, Shuhao">
+<meta name="citation_author" content="Hu, Chenxiao">
+<meta name="citation_author" content="Pan, Yiyuan">
+<meta name="citation_author" content="Feng, Dongyu">
+<meta name="citation_author" content="Xiong, Rong">
+<meta name="citation_author" content="Wang, Yue">
+<meta name="citation_author" content="Jiao, Yanmei">
+<meta name="citation_publication_date" content="2026">
+<meta name="citation_pdf_url" content="https://arxiv.org/pdf/2606.08284">
+<meta name="citation_abstract_html_url" content="https://weiyufei0217.github.io/G2G/">
+<!-- schema.org 结构化数据:让搜索引擎理解这是一篇学术论文 -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ScholarlyArticle",
+  "headline": "G2G: Exploiting Intra-Group Geometry for Inter-Group Pose Estimation",
+  "name": "G2G: Exploiting Intra-Group Geometry for Inter-Group Pose Estimation",
+  "author": [
+    {"@type": "Person", "name": "Yufei Wei"},
+    {"@type": "Person", "name": "Shuhao Ye"},
+    {"@type": "Person", "name": "Chenxiao Hu"},
+    {"@type": "Person", "name": "Yiyuan Pan"},
+    {"@type": "Person", "name": "Dongyu Feng"},
+    {"@type": "Person", "name": "Rong Xiong"},
+    {"@type": "Person", "name": "Yue Wang"},
+    {"@type": "Person", "name": "Yanmei Jiao"}
+  ],
+  "datePublished": "2026",
+  "url": "https://weiyufei0217.github.io/G2G/",
+  "image": "https://weiyufei0217.github.io/G2G/assets/teaser/method.png",
+  "description": "G2G estimates the relative 6-DoF pose between two image groups for cross-sequence relocalization and multi-camera rig odometry, keeping a multi-view foundation model frozen and adding ~32M trainable parameters.",
+  "abstract": "G2G estimates the relative 6-DoF pose between two image groups for cross-sequence relocalization and multi-camera rig odometry, keeping a multi-view foundation model frozen and adding ~32M trainable parameters.",
+  "license": "https://github.com/WeiYuFei0217/G2G",
+  "sameAs": "https://github.com/WeiYuFei0217/G2G"
+}
+</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='25' font-size='24' font-family='sans-serif' font-weight='800' fill='%234f46e5'>G</text></svg>">
+<link rel="preload" href="./static/vendor/fonts/inter-700.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="./static/css/style.css">
+<!-- three.js 通过 importmap 解析裸模块名 'three'(本地内嵌,无 CDN) -->
+<script type="importmap">
+{ "imports": { "three": "./static/vendor/three/three.module.min.js" } }
+</script>
+</head>
+<body>
+
+<!-- ============================== 导航 ============================== -->
+<nav class="nav">
+  <div class="wrap">
+    <a class="brand" href="#top">G2G</a>
+    <div class="spacer"></div>
+    <div class="links" id="navlinks">
+      <a href="#abstract">Abstract</a>
+      <a href="#reloc">Relocalization</a>
+      <a href="#rig">Rig&nbsp;Odometry</a>
+      <a href="#interactive">Interactive</a>
+      <a href="#more">More&nbsp;results</a>
+      <a href="#bibtex">BibTeX</a>
+    </div>
+    <a class="ghbtn" href="https://arxiv.org/abs/2606.08284" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+      Paper
+    </a>
+    <a class="ghbtn" href="https://github.com/WeiYuFei0217/G2G" target="_blank" rel="noopener">
+      <svg viewBox="0 0 16 16" width="16" height="16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8z"/></svg>
+      Code
+    </a>
+    <button class="nav-toggle" id="navToggle" aria-label="Menu">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
+  </div>
+</nav>
+
+<span id="top"></span>
+
+<!-- ============================== HERO ============================== -->
+<header class="hero">
+  <div class="wrap">
+    <h1><span class="brandhl">G2G:</span> Exploiting Intra-Group Geometry<br>for Inter-Group Pose Estimation</h1>
+
+    <div class="authors">
+      <a href="https://github.com/WeiYuFei0217" target="_blank" rel="noopener">Yufei Wei</a><sup>*&thinsp;1</sup>,
+      Shuhao Ye<sup>*&thinsp;1</sup>,
+      Chenxiao Hu<sup>1</sup>,
+      Yiyuan Pan<sup>2</sup>,
+      Dongyu Feng<sup>2</sup>,<br>
+      Rong Xiong<sup>1</sup>,
+      Yue Wang<sup>1</sup>,
+      Yanmei Jiao<sup>&dagger;&thinsp;3</sup>
+    </div>
+    <div class="affils">
+      <div><sup>1</sup>State Key Laboratory of Industrial Control Technology, Zhejiang University</div>
+      <div><sup>2</sup>Zhejiang Humanoid Robot Innovation Center, Ningbo</div>
+      <div><sup>3</sup>Hangzhou Normal University</div>
+    </div>
+  </div>
+</header>
+
+<!-- ============================== TEASER(方法图) ============================== -->
+<section class="teaser" style="padding-top:14px">
+  <div class="wrap">
+    <figure class="fig">
+      <img src="./assets/teaser/method.png" alt="G2G framework: a frozen multi-view backbone with a perceiver resampler, a cross-group bridge with merged self-attention, and a multi-frame pose head.">
+    </figure>
+    <p class="cap"><b>Framework.</b> A frozen multi-view backbone (MapAnything, DINO-V2 ViT-L/14)
+      encodes each group's geometry. Three lightweight trainable modules (a perceiver resampler, a
+      cross-group bridge with merged self-attention, and a multi-frame pose head) jointly refine the
+      intra-group representations and regress the inter-group relative 6-DoF pose.</p>
+  </div>
+</section>
+
+<!-- ============================== ABSTRACT ============================== -->
+<section id="abstract" class="abstract">
+  <div class="wrap narrow">
+    <div class="sec-head"><h2>Abstract</h2></div>
+    <p>Recovering the relative 6-DoF pose between two image groups underlies cross-sequence
+      relocalization and multi-camera rig odometry. Each group carries known intra-group geometry from
+      visual odometry or rig calibration, and pretrained multi-view backbones already fuse such geometry
+      into visual features. Yet current models treat all views as an unstructured set, leaving
+      cross-group reasoning as the missing piece. We cast group-to-group pose estimation as a
+      <b>single unified problem</b> that <b>fully exploits the geometry within each image group</b>, and
+      introduce <b>G2G</b>, which keeps the multi-view foundation model entirely frozen so that its
+      rich 3D representations are preserved rather than collapsing under fine-tuning. Three
+      lightweight trainable modules bridge the two groups: a <i>perceiver resampler</i>, a
+      <i>cross-group bridge with merged self-attention</i>, and a <i>multi-frame pose head</i>, together
+      adding about 32M parameters (under 6% of the full model) and supervised only by relative poses.
+      Across four datasets that span indoor and outdoor simulation, real-world cross-session capture with
+      appearance change, and zero-shot sim-to-real transfer, G2G attains <b>state-of-the-art accuracy on both
+      tasks</b>, while
+      every baseline is retrained with its full original supervision.</p>
+  </div>
+</section>
+
+<!-- ============================== TASK 1 · RELOCALIZATION ============================== -->
+<section id="reloc">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Task 1</span>
+      <h2>Cross-Sequence Relocalization</h2>
+      <p>Given two short sequences captured at different times, G2G recovers the relative pose that aligns them.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Relocalization datasets"
+         data-tabgroup data-vid="#reloc-video" data-vidbase="reloc">
+      <button class="tab" role="tab" data-ds="hm3d" aria-selected="true">HM3D</button>
+      <button class="tab" role="tab" data-ds="tartanground" aria-selected="false">TartanGround</button>
+      <button class="tab" role="tab" data-ds="nclt" aria-selected="false">NCLT</button>
+      <button class="tab" role="tab" data-ds="zjh" aria-selected="false">ZJH</button>
+    </div>
+
+    <div class="video-card">
+      <video id="reloc-video" autoplay muted loop playsinline preload="metadata"
+             poster="./assets/videos/reloc-hm3d.jpg">
+        <source src="./assets/videos/reloc-hm3d.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <div class="table-title"><span class="tag">Table 1</span> Cross-sequence localization on four datasets (mean errors)</div>
+    <div id="table-reloc" data-table="reloc">
+      <p class="cap">Loading table&hellip;</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== TASK 2 · RIG ODOMETRY ============================== -->
+<section id="rig">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Task 2</span>
+      <h2>Multi-Camera Rig Odometry</h2>
+      <p>Two rigid camera rigs at consecutive timestamps; G2G estimates the inter-rig motion. Demos render
+        one camera for clarity, while inference and pose prediction use the full multi-camera rig.</p>
+    </div>
+
+    <div class="tabs" role="tablist" aria-label="Rig odometry datasets"
+         data-tabgroup data-vid="#rig-video" data-vidbase="rig">
+      <button class="tab" role="tab" data-ds="hm3d8" aria-selected="true">HM3D&nbsp;<small>(8-cam)</small></button>
+      <button class="tab" role="tab" data-ds="hm3d4_15m" aria-selected="false">HM3D&nbsp;<small>(4-cam)</small></button>
+      <button class="tab" role="tab" data-ds="tartanground" aria-selected="false">TartanGround&nbsp;<small>(4-cam)</small></button>
+      <button class="tab" role="tab" data-ds="nclt" aria-selected="false">NCLT&nbsp;<small>(5-cam)</small></button>
+      <button class="tab" role="tab" data-ds="zjh_sim" aria-selected="false">ZJH&nbsp;<small>(sim, 4-cam)</small></button>
+      <button class="tab" role="tab" data-ds="zjh_real" aria-selected="false">ZJH&nbsp;<small>(real, 4-cam)</small></button>
+    </div>
+
+    <div class="video-card">
+      <video id="rig-video" autoplay muted loop playsinline preload="metadata"
+             poster="./assets/videos/rig-hm3d8.jpg">
+        <source src="./assets/videos/rig-hm3d8.mp4" type="video/mp4">
+      </video>
+    </div>
+
+    <div class="table-title"><span class="tag">Table 2</span> Multi-camera rig odometry on six configurations (mean errors)</div>
+    <div id="table-rig" data-table="rig">
+      <p class="cap">Loading table&hellip;</p>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== INTERACTIVE 3D VIEWER ============================== -->
+<section id="interactive">
+  <div class="wrap">
+    <div class="sec-head">
+      <span class="eyebrow">Explore in 3D</span>
+      <h2>Interactive Reconstruction Viewer</h2>
+      <p>Orbit real reconstructions placed by G2G. In <b>Relocalization</b>, merge two sequences and
+        compare predicted vs. ground-truth alignment. In <b>Rig Odometry</b>, stitch consecutive
+        multi-camera rigs frame by frame.</p>
+    </div>
+
+    <!-- 模式切换 -->
+    <div class="tabs" role="tablist" aria-label="Viewer mode" id="viewer-mode-tabs">
+      <button class="tab" role="tab" data-mode="reloc" aria-selected="true">Relocalization</button>
+      <button class="tab" role="tab" data-mode="rig" aria-selected="false">Rig&nbsp;Odometry</button>
+    </div>
+    <!-- 例子选择(按模式动态填充) -->
+    <div class="tabs ex-tabs" role="tablist" aria-label="Example" id="viewer-example-tabs"></div>
+
+    <div class="viewer-wrap">
+      <canvas id="viewer-canvas"></canvas>
+      <div class="viewer-readout" id="viewer-readout" hidden>
+        <div class="t" id="ro-title">G2G prediction</div>
+        <div class="err" id="ro-err"></div>
+      </div>
+      <div class="viewer-loading" id="viewer-loading"><span class="spin"></span>Loading point cloud&hellip;</div>
+      <div class="viewer-mono-note" id="viewer-mono-note" hidden>
+        <b>Monocular point cloud</b> (front camera only). Pose inference still uses the full multi-camera rig.
+      </div>
+      <div class="viewer-hint">drag&nbsp;·&nbsp;rotate&nbsp;&nbsp;|&nbsp;&nbsp;scroll&nbsp;·&nbsp;zoom</div>
+      <div class="viewer-fallback" id="viewer-fallback">
+        <p><b>WebGL is unavailable in this browser.</b></p>
+        <p>The interactive viewer needs WebGL. The static qualitative figures above show the same results.</p>
+      </div>
+    </div>
+
+    <div class="viewer-bar">
+      <!-- RELOC 控件 -->
+      <div class="mode-ctrl" data-mode="reloc">
+        <div class="vgroup">
+          <span class="lbl">View</span>
+          <div class="seg" id="reloc-view" role="group" aria-label="Merge view">
+            <button data-v="before">Before merge</button>
+            <button data-v="pred" aria-pressed="true">After&nbsp;(Pred)</button>
+            <button data-v="gt">After&nbsp;(GT)</button>
+          </div>
+        </div>
+        <div class="vgroup">
+          <span class="lbl">Color</span>
+          <div class="seg" id="reloc-color" role="group" aria-label="Point color">
+            <button data-v="rgb" aria-pressed="true">RGB</button>
+            <button data-v="group">A&nbsp;/&nbsp;B</button>
+          </div>
+        </div>
+        <div class="vgroup">
+          <span class="lbl">Cameras</span>
+          <div class="seg" id="reloc-cams" role="group" aria-label="Camera overlay">
+            <button data-v="both" aria-pressed="true">GT&nbsp;vs&nbsp;Pred</button>
+            <button data-v="pred">Pred</button>
+            <button data-v="gt">GT</button>
+            <button data-v="off">Off</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIG 控件 -->
+      <div class="mode-ctrl" data-mode="rig" hidden>
+        <div class="vgroup">
+          <span class="lbl">View</span>
+          <div class="seg" id="rig-view" role="group" aria-label="Merged map">
+            <button data-v="pred" aria-pressed="true">Pred</button>
+            <button data-v="gt">GT</button>
+          </div>
+        </div>
+        <div class="vgroup">
+          <span class="lbl">Shading</span>
+          <div class="seg" id="rig-shade" role="group" aria-label="Frame shading">
+            <button data-v="highlight" aria-pressed="true">Highlight&nbsp;current</button>
+            <button data-v="rgb">All&nbsp;RGB</button>
+          </div>
+        </div>
+        <div class="vgroup">
+          <span class="lbl">Cameras</span>
+          <div class="seg" id="rig-cams" role="group" aria-label="Camera depiction">
+            <button data-v="mono" aria-pressed="true">Mono</button>
+            <button data-v="multi">Multi</button>
+          </div>
+        </div>
+        <div class="vgroup slider">
+          <span class="lbl">Frames</span>
+          <input type="range" id="rig-frames" min="1" max="20" step="1" value="20" aria-label="Stitched frames">
+          <span class="slider-val" id="rig-frames-val">20</span>
+        </div>
+      </div>
+
+      <!-- 共享:点大小 -->
+      <div class="vgroup">
+        <span class="lbl">Points</span>
+        <div class="seg" id="point-size" role="group" aria-label="Point size">
+          <button data-ps="1.0">S</button>
+          <button data-ps="2.0" aria-pressed="true">M</button>
+          <button data-ps="4.0">L</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="viewer-legend" id="viewer-legend"></div>
+  </div>
+</section>
+
+<!-- ============================== MORE(默认折叠) ============================== -->
+<section id="more">
+  <div class="wrap">
+    <div class="sec-head"><h2>More Results</h2></div>
+
+    <details class="more" open>
+      <summary>Ablation study
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="more-body">
+        <div class="table-title">Ablation of G2G design choices on five settings (mean errors)</div>
+        <div id="table-ablation" data-table="ablation"><p class="cap">Loading table&hellip;</p></div>
+      </div>
+    </details>
+
+    <details class="more">
+      <summary>Cross-sequence localization: full metric suite
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="more-body">
+        <div class="table-title">Per-dataset translation / rotation errors and accuracy thresholds</div>
+        <div id="table-reloc-full" data-table="reloc_full"><p class="cap">Loading table&hellip;</p></div>
+      </div>
+    </details>
+
+    <details class="more">
+      <summary>Rig odometry: full metric suite
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="more-body">
+        <div class="table-title">Per-configuration translation / rotation errors, accuracy thresholds, and mAA@30&deg;</div>
+        <div id="table-rig-full" data-table="rig_full"><p class="cap">Loading table&hellip;</p></div>
+      </div>
+    </details>
+
+    <details class="more">
+      <summary>Pose error vs. field-of-view overlap
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="more-body">
+        <!-- 1) overlap 分布(上下文,置顶),单行四面板 -->
+        <figure class="fig">
+          <img src="./assets/figures/figspec_overlap_distribution.png" alt="Per-pair field-of-view overlap distribution for each dataset" loading="lazy">
+          <figcaption><b>Per-pair overlap distribution.</b> Histograms of field-of-view overlap for the
+            evaluation pairs of (a) HM3D (median 0.50), (b) TartanGround (median 0.55), (c) NCLT
+            (median 0.24), and (d) ZJH (median 0.34); each panel's box reports n, min, max, mean, and
+            median. Faint dashed lines mark the nine curriculum thresholds (0.50 down to 0.10). NCLT has
+            the lowest overlap, which makes it the hardest cross-sequence setting.</figcaption>
+        </figure>
+        <!-- 2) 旋转误差随重叠度变化,单行四面板 -->
+        <figure class="fig">
+          <img src="./assets/figures/figspec_perf_vs_overlap_rot.png" alt="Mean rotation error binned by field-of-view overlap for each dataset" loading="lazy">
+          <figcaption><b>Mean rotation error vs. field-of-view overlap.</b> Panels (a)&ndash;(d) cover
+            HM3D, TartanGround, NCLT, and ZJH. In each, every method's mean rotation error (log scale) is
+            binned by the field-of-view overlap of the selected top-1 window, i.e. the geometric overlap the
+            model actually sees. On ZJH, solid and dashed curves denote the simulated and real splits. The
+            MA-AB oracle (gray) is a reference ceiling. G2G (red) degrades most gradually as overlap drops and
+            stays closest to the oracle, while baselines grow by up to an order of magnitude in the low-overlap
+            regime.</figcaption>
+        </figure>
+        <!-- 3) 平移误差随重叠度变化,单行四面板 -->
+        <figure class="fig">
+          <img src="./assets/figures/figspec_perf_vs_overlap_trans.png" alt="Mean translation error binned by field-of-view overlap for each dataset" loading="lazy">
+          <figcaption><b>Mean translation error vs. field-of-view overlap.</b> Panels (a)&ndash;(d) cover
+            HM3D, TartanGround, NCLT, and ZJH. In each, every method's mean translation error in meters
+            (log scale) is binned by the field-of-view overlap of the selected top-1 window, i.e. the
+            geometric overlap the model actually sees. On ZJH, solid and dashed curves denote the simulated
+            and real splits. Translation follows the main-table scale convention: VGGT is up-to-scale
+            (raw L2), Reloc3R is Procrustes-aligned, and the remaining metric methods (G2G, LoMa, CoViS-Net,
+            MA) use bare L2, so absolute values are not comparable across methods. The MA-AB oracle
+            (gray) is a reference ceiling; G2G (red) stays closest to it and degrades most gradually as
+            overlap drops, while baselines grow sharply in the low-overlap regime.</figcaption>
+        </figure>
+      </div>
+    </details>
+
+    <details class="more">
+      <summary>Additional case study
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </summary>
+      <div class="more-body">
+        <figure class="fig">
+          <img src="./assets/figures/case-study.png" alt="Predicted vs. ground-truth poses on the reconstructed scene" loading="lazy">
+          <figcaption><b>Qualitative examples on real data.</b> (Top) A zero-shot sim-to-real ZJH
+            localization pair in which the two groups image opposite sides of the same wall, leaving little
+            direct visual overlap; the insets show G2G's predicted poses tracking the ground-truth trajectory
+            on both groups. (Bottom) A long-range cross-session
+            NCLT rig pair recorded on different dates, with large signage changed and roadside trees removed
+            between sessions; G2G still brings the two groups into one frame, with a residual inter-group
+            rotation of 1.12&deg; and a residual translation of 5.3&thinsp;cm.</figcaption>
+        </figure>
+      </div>
+    </details>
+  </div>
+</section>
+
+<!-- ============================== BIBTEX ============================== -->
+<section id="bibtex" class="bibtex">
+  <div class="wrap narrow">
+    <div class="bib-head">
+      <h2 style="margin:0;font-size:24px">BibTeX</h2>
+      <button class="copy-btn" id="copyBib">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span>Copy</span>
+      </button>
+    </div>
+<pre id="bibtex-text">@misc{wei2026g2gexploitingintragroupgeometry,
+      title={G2G: Exploiting Intra-Group Geometry for Inter-Group Pose Estimation},
+      author={Yufei Wei and Shuhao Ye and Chenxiao Hu and Yiyuan Pan and Dongyu Feng and Rong Xiong and Yue Wang and Yanmei Jiao},
+      year={2026},
+      eprint={2606.08284},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2606.08284},
+}</pre>
+  </div>
+</section>
+
+<!-- ============================== FOOTER ============================== -->
+<footer>
+  <div class="wrap">
+    <p>Code is available at
+      <a href="https://github.com/WeiYuFei0217/G2G" target="_blank" rel="noopener">github.com/WeiYuFei0217/G2G</a>.</p>
+    <p style="opacity:.8">Built with a locally-vendored <a href="https://threejs.org" target="_blank" rel="noopener">three.js</a>
+      viewer and self-hosted fonts, with no runtime CDN dependencies. Page design adapted from the
+      <a href="https://github.com/nerfies/nerfies.github.io" target="_blank" rel="noopener">Nerfies</a> /
+      Academic Project Page template (CC BY-SA 4.0).</p>
+  </div>
+</footer>
+
+<script type="module" src="./static/js/main.js"></script>
+</body>
+</html>

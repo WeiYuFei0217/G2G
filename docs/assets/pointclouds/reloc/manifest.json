@@ -1,0 +1,57 @@
+{
+  "zjh_real": {
+    "display": "ZJH (real)",
+    "errors": {
+      "rot_deg": 0.92,
+      "trans_m": 1.0187,
+      "gt_rot": 169.31,
+      "gt_trans": 12.565,
+      "overlap": 0.1149
+    },
+    "n_cams": 5
+  },
+  "nclt": {
+    "display": "NCLT (real, cross-season)",
+    "errors": {
+      "rot_deg": 1.923,
+      "trans_m": 0.2205,
+      "gt_rot": 113.64,
+      "gt_trans": 17.228,
+      "overlap": 0.1757
+    },
+    "n_cams": 5
+  },
+  "tartanground": {
+    "display": "TartanGround (synthetic)",
+    "errors": {
+      "rot_deg": 2.085,
+      "trans_m": 0.0433,
+      "gt_rot": 35.96,
+      "gt_trans": 5.863,
+      "overlap": 0.2549
+    },
+    "n_cams": 5
+  },
+  "hm3d": {
+    "display": "HM3D (synthetic)",
+    "errors": {
+      "rot_deg": 1.568,
+      "trans_m": 0.2402,
+      "gt_rot": 125.61,
+      "gt_trans": 7.513,
+      "overlap": 0.1733
+    },
+    "n_cams": 5
+  },
+  "zjh": {
+    "display": "ZJH (sim)",
+    "errors": {
+      "rot_deg": 0.678,
+      "trans_m": 0.0747,
+      "gt_rot": 49.61,
+      "gt_trans": 3.477,
+      "overlap": 0.3
+    },
+    "n_cams": 5
+  }
+}

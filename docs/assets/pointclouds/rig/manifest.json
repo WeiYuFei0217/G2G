@@ -1,0 +1,80 @@
+{
+  "hm3d8": {
+    "display": "HM3D (8-cam rig)",
+    "task": "rig",
+    "n_cams": 8,
+    "metrics": {
+      "ate_rmse_m": 0.0448,
+      "drift_pct": 12.608,
+      "per_step_rot_med": 0.468,
+      "per_step_trans_med": 0.0029,
+      "path_length_m": 2.63
+    },
+    "n_frames": 20
+  },
+  "hm3d4_15m": {
+    "display": "HM3D (4-cam rig)",
+    "task": "rig",
+    "n_cams": 4,
+    "metrics": {
+      "ate_rmse_m": 0.0513,
+      "drift_pct": 4.181,
+      "per_step_rot_med": 0.632,
+      "per_step_trans_med": 0.0121,
+      "path_length_m": 4.82
+    },
+    "n_frames": 20
+  },
+  "tartanground": {
+    "display": "TartanGround (4-cam rig)",
+    "task": "rig",
+    "n_cams": 4,
+    "metrics": {
+      "ate_rmse_m": 0.0888,
+      "drift_pct": 2.819,
+      "per_step_rot_med": 0.17,
+      "per_step_trans_med": 0.0286,
+      "path_length_m": 9.62
+    },
+    "n_frames": 20
+  },
+  "nclt": {
+    "display": "NCLT (5-cam rig)",
+    "task": "rig",
+    "n_cams": 5,
+    "metrics": {
+      "ate_rmse_m": 0.0731,
+      "drift_pct": 0.664,
+      "per_step_rot_med": 0.907,
+      "per_step_trans_med": 0.0574,
+      "path_length_m": 12.6
+    },
+    "n_frames": 20
+  },
+  "zjh_sim": {
+    "display": "ZJH (sim, 4-cam rig)",
+    "task": "rig",
+    "n_cams": 4,
+    "metrics": {
+      "ate_rmse_m": 0.0165,
+      "drift_pct": 7.253,
+      "per_step_rot_med": 0.364,
+      "per_step_trans_med": 0.0118,
+      "path_length_m": 2.15
+    },
+    "n_frames": 20
+  },
+  "zjh_real": {
+    "display": "ZJH (real, 4-cam rig)",
+    "task": "rig",
+    "n_cams": 4,
+    "metrics": {
+      "ate_rmse_m": 2.2728,
+      "drift_pct": 15.042,
+      "per_step_rot_med": 0.967,
+      "per_step_trans_med": 0.4892,
+      "path_length_m": 37.39
+    },
+    "n_frames": 20
+  }
+}

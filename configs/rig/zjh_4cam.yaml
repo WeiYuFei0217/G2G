@@ -1,0 +1,88 @@
+# ZJH-Rig-4.yaml -- G2G config
+# Task: Multi-camera rig odometry (Task 2)
+# Dataset: ZJH 4-camera rig (sim train, sim+real zero-shot)
+# Replace all /path/to/... with your real paths (backbone and data) before use.
+# Train: torchrun --nproc_per_node=4 scripts/train_rig.py --config configs/rig/zjh_4cam.yaml
+# Eval:  python scripts/eval_rig.py --config configs/rig/zjh_4cam.yaml --checkpoint /path/to/ZJH-Rig-4.pth --output-dir outputs/eval_ZJH-Rig-4
+
+# ===== Backbone =====
+backbone:
+  model_path: "/path/to/map-anything-model/"
+  freeze: true
+
+# ===== G2G model =====
+model:
+  embed_dim: 768
+  num_latents: 64
+  num_frames_per_group: 4
+  resampler_layers: 2
+  bridge_alternating_pairs: 0
+  bridge_merged_layers: 2
+  reinject_anchor_after_merge: true
+  pose_head_hidden_dim: 512
+  pose_head_layers: 3
+  num_heads: 8
+  rotation_repr: "6d"
+
+# ===== Data =====
+data:
+  train:
+    step1_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step1_rig4_trajectories"
+    step2_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step2_rig4_configs"
+    step3_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step1_rig4_trajectories"
+    step6_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step6_rig4_features"
+    index_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step7_rig4_index_train"
+  val:
+    step1_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step1_rig4_trajectories"
+    step2_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step2_rig4_configs"
+    step3_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step1_rig4_trajectories"
+    step6_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step6_rig4_features"
+    index_root: "/path/to/data/ZJH/ZJH_DATA_GEN_new/SIM_step7_rig4_index_val_3scenes"
+    max_pairs_per_scene: 1000
+  val_real:
+    step1_root: "/path/to/data/ZJH/ZJH_DATA_GEN/REAL_rig_step1_trajectories"
+    step2_root: "/path/to/data/ZJH/ZJH_DATA_GEN/REAL_rig_step2_configs"
+    step3_root: "/path/to/data/ZJH/ZJH_DATA_GEN/REAL_rig_step1_trajectories"
+    step6_root: "/path/to/data/ZJH/ZJH_DATA_GEN/REAL_rig_step6_features"
+    index_root: "/path/to/data/ZJH/ZJH_DATA_GEN/REAL_rig_step7_index"
+    max_pairs_per_scene: 5000
+  num_cameras: 4
+  total_cameras: 4
+  extrinsics_noise:
+    enabled: true
+    rotation_noise_std_deg: 1.5
+    translation_noise_std_m: 0.1
+  image_size: 224
+  patch_size: 14
+  num_workers: 4
+
+# ===== Training =====
+training:
+  batch_size: 32
+  gradient_accumulation: 1
+  lr: 1.0e-4
+  weight_decay: 0.01
+  epochs: 2
+  warmup_steps: 500
+  lr_step_interval: 10
+  grad_clip: 5.0
+  seed: 42
+  loss_type: "chordal_frob"
+  rotation_weight: 5.0
+  translation_weight: 1.0
+  intra_pose_weight: 0.5
+  inter_pose_weight: 1.0
+  log_every: 1000
+  val_every: 1
+  save_every: 1
+  max_val_batches: -1
+  val_steps_interval: 2000
+  output_dir: "./outputs/ZJH-Rig-4"
+
+# ===== Overfit mode (--overfit) =====
+overfit:
+  max_scenes: 1
+  batch_size: 32
+  epochs: 5
+  lr: 1.0e-4
+  log_every: 5
