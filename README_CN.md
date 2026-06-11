@@ -9,7 +9,7 @@
   <a href="https://arxiv.org/abs/2606.08284"><img src="https://img.shields.io/badge/arXiv-2606.08284-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arXiv"></a>
 </p>
 
-**[CoRL 2026 (在审)]** G2G 官方实现。
+G2G 官方实现。
 
 [[English README]](README.md)
 

@@ -9,7 +9,7 @@
   <a href="https://arxiv.org/abs/2606.08284"><img src="https://img.shields.io/badge/arXiv-2606.08284-B31B1B?style=for-the-badge&logo=arxiv&logoColor=white" alt="arXiv"></a>
 </p>
 
-**[CoRL 2026 (under review)]** Official implementation of G2G.
+Official implementation of G2G.
 
 [[中文 README]](README_CN.md)
 
