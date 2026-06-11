@@ -1,0 +1,80 @@
+# HM3D-Rig-8.yaml -- G2G config
+# Task: Multi-camera rig odometry (Task 2)
+# Dataset: HM3D 8-camera rig
+# Replace all /path/to/... with your real paths (backbone and data) before use.
+# Train: torchrun --nproc_per_node=4 scripts/train_rig.py --config configs/rig/hm3d_8cam.yaml
+# Eval:  python scripts/eval_rig.py --config configs/rig/hm3d_8cam.yaml --checkpoint /path/to/HM3D-Rig-8.pth --output-dir outputs/eval_HM3D-Rig-8
+
+# ===== Backbone =====
+backbone:
+  model_path: "/path/to/map-anything-model/"
+  freeze: true
+
+# ===== G2G model (multi-frame, rig mode, all 8 cameras) =====
+model:
+  embed_dim: 768
+  num_latents: 64
+  num_frames_per_group: 8        # all 8 cameras
+  resampler_layers: 2
+  bridge_alternating_pairs: 0   # merge_only
+  bridge_merged_layers: 2
+  reinject_anchor_after_merge: true
+  pose_head_hidden_dim: 512
+  pose_head_layers: 3
+  num_heads: 8
+  rotation_repr: "6d"
+
+# ===== Data (all 8 cameras) =====
+data:
+  train:
+    step1_root: "/path/to/data/step1_generate_trajectories_train"
+    step2_root: "/path/to/data/step2_rig8_configs_train"
+    step3_root: "/path/to/data/step3_render_rig8_224_train"
+    step6_root: "/path/to/data/step6_dinov2_features_rig8_train"
+    index_root: "/path/to/data/step7_rig_index_train_ms"
+  val:
+    step1_root: "/path/to/data/step1_generate_trajectories_val"
+    step2_root: "/path/to/data/step2_rig8_configs_val"
+    step3_root: "/path/to/data/step3_render_rig8_224_val"
+    step6_root: "/path/to/data/step6_dinov2_features_rig8_val"
+    index_root: "/path/to/data/step7_rig_index_val_ms"
+  num_cameras: 8
+  total_cameras: 8
+  image_size: 224
+  patch_size: 14
+  num_workers: 4
+
+# ===== Training =====
+training:
+  batch_size: 32
+  gradient_accumulation: 1
+  lr: 1.0e-4
+  weight_decay: 0.01
+  epochs: 3
+  warmup_steps: 500
+  lr_step_interval: 10
+  grad_clip: 5.0
+  seed: 42
+
+  # Loss
+  loss_type: "chordal"
+  rotation_weight: 5.0
+  translation_weight: 1.0
+  intra_pose_weight: 0.5
+  inter_pose_weight: 1.0
+
+  # Logging and checkpointing
+  log_every: 10
+  val_every: 1
+  save_every: 1
+  max_val_batches: 500
+  val_steps_interval: 10000
+  output_dir: "./outputs/HM3D-Rig-8"
+
+# ===== Overfit mode (--overfit) =====
+overfit:
+  max_scenes: 10
+  batch_size: 8
+  epochs: 20
+  lr: 1.0e-4
+  log_every: 5

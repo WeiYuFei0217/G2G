@@ -1,0 +1,41 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.ipynb_checkpoints/
+
+# ---------------------------------------------------------------------------
+# Large assets — distributed via Baidu Netdisk, NOT tracked in git:
+#   - release_weights/   G2G module weights (.pth)
+#   - examples/{reloc,rig}/  sanity-check input bundles (RGB + index)
+#   - eval_results/      paper-subset per-pair evaluation CSVs
+#   - map-anything-model/  the frozen MapAnything backbone checkpoint
+# See README "Pre-trained Models" for the download link.
+# ---------------------------------------------------------------------------
+release_weights/
+*.safetensors
+*.ckpt
+*.pth
+*.pt
+map-anything-model/
+
+# Example bundles: keep the READMEs, ship the data via Baidu.
+examples/reloc/
+examples/rig/
+
+# Raw evaluation results (per-pair CSVs): ship via Baidu.
+eval_results/
+
+# Project homepage source — published via the weiyufei0217.github.io
+# user-site repo (/G2G/), NOT shipped with the code repo.
+docs/
+
+# Misc outputs / scratch
+outputs/
+*.log
+tmp/
+.DS_Store
+scripts/_*.py

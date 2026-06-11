@@ -1,0 +1,53 @@
+# stage2_index_generation_gt.yaml -- G2G window-index generation config (GT mode)
+#
+# GT mode is recommended: it does not depend on any covisibility model.
+#   python data_preprocessing/step5_generate_stage2_index.py \
+#       --config data_preprocessing/configs/stage2_index_generation_gt.yaml \
+#       --split train --mode gt --no-precompute-covis
+#   python data_preprocessing/step5_generate_stage2_index.py \
+#       --config data_preprocessing/configs/stage2_index_generation_gt.yaml \
+#       --split val   --mode gt --no-precompute-covis
+#
+# GT mode selects windows directly from the depth-projection overlap (Step 4),
+# so no covisibility weights are required. The `stage1:` block below is only used by
+# `--mode stage1/hybrid`; the open-source pipeline defaults to GT mode, and you
+# would need to bring your own covisibility model (out of scope for this repo).
+
+# covisibility model config (only needed for stage1/hybrid mode; ignored in GT mode)
+stage1:
+  config: "/path/to/your/stage1/config.yaml"
+  checkpoint: "/path/to/your/stage1/checkpoint.pth"
+
+# Sliding-window parameters
+window:
+  size: 5                     # window size (frames per group)
+  top_k: 10                   # number of Top-K windows
+  stride: 1                   # sliding stride
+  score_type: "max_mean"      # scoring strategy: "max_mean", "mean", "min_max"
+  min_distance: 2             # NMS minimum distance (between windows)
+  min_overlap_threshold: 0.1  # min overlap threshold: score (max_mean) >= min_overlap_threshold; any element in the window submatrix >= 3 * min_overlap_threshold
+
+# Inference parameters
+inference:
+  encoder_batch_size: 32      # encoder batch size
+  decoder_batch_size: 64      # decoder frame-pair batch size
+  use_amp: true               # bfloat16 mixed precision
+
+# Whether to precompute per-pixel covisibility maps
+precompute_covisibility: true
+
+# Data paths
+paths:
+  # Training set
+  step1_root_train: "/path/to/data/HM3D/DATA_GEN/step1_generate_trajectories_train"
+  step2_root_train: "/path/to/data/HM3D/DATA_GEN/step2_5_rig_configs_train"
+  step3_root_224_train: "/path/to/data/HM3D/DATA_GEN/step3_render_224_224_uint16_train_2_5ins"
+  step4_root_train: "/path/to/data/HM3D/DATA_GEN/step4_overlap_224_uint16_train_2_5ins"
+  output_root_train: "/path/to/data/HM3D/DATA_GEN/step5_stage2_index_train_gt_2_5ins"
+
+  # Validation set
+  step1_root_val: "/path/to/data/HM3D/DATA_GEN/step1_generate_trajectories_val"
+  step2_root_val: "/path/to/data/HM3D/DATA_GEN/step2_5_rig_configs_val"
+  step3_root_224_val: "/path/to/data/HM3D/DATA_GEN/step3_render_224_224_uint16_val_2_5ins"
+  step4_root_val: "/path/to/data/HM3D/DATA_GEN/step4_overlap_224_uint16_val_2_5ins"
+  output_root_val: "/path/to/data/HM3D/DATA_GEN/step5_stage2_index_val_gt_2_5ins"

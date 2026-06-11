@@ -1,0 +1,16 @@
+# G2G dependencies. The frozen MapAnything backbone is vendored in this repo:
+#   pip install -e ./third_party/mapanything   (see README, Installation step 2)
+torch>=2.0
+torchvision
+numpy
+scipy
+pyyaml
+tqdm
+matplotlib
+pillow
+opencv-python
+tensorboard
+# Pulled in by the MapAnything backbone; listed for convenience:
+einops
+safetensors
+huggingface_hub
